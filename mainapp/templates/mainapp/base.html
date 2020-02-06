@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+{% load static %}
+{% load cache %}
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}
+            {{ page_title|title }}
+        {% endblock %}
+    </title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:100,300,400,700" rel="stylesheet">
+    <link rel="icon" type="image/gif" href="{% static 'img/small_logo.gif' %}" />
+    {% block css %}
+        <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% endblock %}
+    {% block js %}
+		<script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+       	<script src="{% static 'js/bootstrap.min.js' %}"></script>
+    {% endblock %}
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="top">
+            {% block container %}
+            {% endblock %}
+        </div>
+        <footer class="bottom">
+            {% block footer %}
+            <div class="container">
+                <div class="footer padding-site">
+                    <section class="copyright">
+                        <div class="hidden">
+                            <h2>Copyright</h2>
+                        </div>
+                        <div class="copy-col">
+                           <p class="copyright-text">&copy;&nbsp;Copyright&nbsp;&mdash; FINNEWS 2020. All Rights Reserved.</p>
+                        </div>
+                        <div class="copy-col">
+                           <a href="#" class="copyr-link"><i class="fab fa-facebook-f copyr-img"></i></a>
+                           <a href="#" class="copyr-link"><i class="fab fa-twitter copyr-img"></i></a>
+                           <a href="#" class="copyr-link"><i class="fab fa-pinterest-p copyr-img"></i></a>
+                        </div>
+                        <div class="copy-col">
+                            <a href="#" class="terms-link">Terms &amp;&nbsp;Conditions</a>
+                            &nbsp;/&nbsp;<a href="#" class="terms-link">Privacy policy &amp;&nbsp;Cookies</a>
+                        </div>
+                    </section>
+                    <section>
+                        <div class="hidden">
+                            <h2>Referens</h2>
+                        </div>
+                        <p>
+                            <a href="https://jigsaw.w3.org/css-validator/check/referer">
+                            <img style="border:0;width:88px;height:31px" src="https://jigsaw.w3.org/css-validator/images/vcss-blue" alt="Correct CSS!">
+                            </a>
+                        </p>
+                    </section> 
+                </div>
+            </div>
+            {% endblock %}
+        </footer>
+    </div>
+</body>
+
+</html>
