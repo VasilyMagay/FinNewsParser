@@ -1,2 +1,12 @@
 /venv/
 /.idea/
+*.pyc
+*~
+__pycache__
+myvenv
+db.sqlite3
+/static
+.DS_Store
+news_parser/my_settings.py
+mysql.cnf
+news_parser/production_settings.py
