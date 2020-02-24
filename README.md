@@ -26,3 +26,7 @@ EMAIL_HOST_PASSWORD = ''
 ALLOWED_HOSTS = ['magv.pythonanywhere.com', ]
 
 DOMAIN_NAME = 'https://magv.pythonanywhere.com:443'
+
+Ограничения по SMTP:
+
+https://help.pythonanywhere.com/pages/SMTPForFreeUsers/

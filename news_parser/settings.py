@@ -106,10 +106,6 @@ LOGIN_URL = '/auth/login'
 
 DOMAIN_NAME = 'http://localhost:8000'
 
-EMAIL_HOST = 'smtp.mail.ru'
-EMAIL_PORT = '465'
-EMAIL_USE_SSL = True
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
