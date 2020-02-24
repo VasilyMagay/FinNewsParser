@@ -11,22 +11,18 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from .my_settings import *
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '4647$f(#*u7d6=(1z$$$ekp0#kd2#b$6!(^9ih4u&-0z1b)n+i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -71,7 +67,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'news_parser.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
@@ -87,7 +82,6 @@ DATABASES = {
         },
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -114,8 +108,6 @@ DOMAIN_NAME = 'http://localhost:8000'
 
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = '465'
-EMAIL_HOST_USER = 'django@mdoc.pro'
-EMAIL_HOST_PASSWORD = 'h(Gp36hZQwoF'
 EMAIL_USE_SSL = True
 
 # Internationalization
@@ -131,7 +123,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
@@ -140,3 +131,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+if not DEBUG:
+    try:
+        from .production_settings import *
+    except ImportError:
+        pass
