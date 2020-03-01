@@ -21,6 +21,10 @@ EMAIL_HOST_USER = ''
 
 EMAIL_HOST_PASSWORD = ''
 
+EMAIL_PORT = 587
+
+EMAIL_USE_TLS = True
+
 <br>
 <p>Файл с настройками Production <b>news_parser/production_settings.py</b>:</p>
 ALLOWED_HOSTS = ['magv.pythonanywhere.com', ]
@@ -30,3 +34,7 @@ DOMAIN_NAME = 'https://magv.pythonanywhere.com:443'
 Ограничения по SMTP:
 
 https://help.pythonanywhere.com/pages/SMTPForFreeUsers/
+
+Первоначальное заполнение сведениями о сайтах:
+
+python manage.py init_sites
