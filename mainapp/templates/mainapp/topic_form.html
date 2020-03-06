@@ -1,0 +1,18 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+{% load cache %}
+
+{% block container %}
+    <div class="login">
+        <form class="form-horizontal" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input class="form-control" type="submit" value="сохранить">
+        </form>
+
+        <a href="{% url 'main:topic_list' %}" class="btn btn-round form-control last">
+            к списку
+        </a>
+    </div>
+
+{% endblock %}

@@ -16,11 +16,15 @@ Including another URLconf
 from django.contrib import admin
 # from django.urls import path
 from django.urls import re_path, include
+import mainapp
 
 urlpatterns = [
     re_path(r'^', include('mainapp.urls', namespace='main')),
     re_path(r'^auth/', include('authapp.urls', namespace='auth')),
     re_path(r'^admin/', admin.site.urls),  # типовая админка
+    # re_path(r'^news/', include('mainapp.urls', namespace='news')),
+    # re_path(r'^topics/', include('mainapp.urls', namespace='topics')),
     # re_path(r'^admin/', include('adminapp.urls', namespace='admin')),
     # re_path(r'^auth/verify/google/oauth2/', include('social_django.urls', namespace='social')),
 ]
+# re_path(r'^(\d+)/$', mainapp.site, name='site'),

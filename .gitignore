@@ -10,4 +10,7 @@ db.sqlite3
 mysql.cnf
 news_parser/my_settings.py
 news_parser/production_settings.py
-news_parser/*.log
+*.log
+*.bat
+authapp/migrations/
+mainapp/migrations/
