@@ -15,8 +15,8 @@
                 </main>
             </div>
             <div class="category-products clearfix">
-                {% for site in sites %}
-                    <button type="button" class="btn btn-primary"><a href="{% url 'main:site' site.pk %}">{{ site.name }}</a></button>
+                {% for line in news %}
+                <p><span>{{ line.news_date|date:"d.m.Y H:i" }}</span>  <a href="{{ line.ref }}">{{ line.brief_info }}</a></p>
                 {% endfor %}
             </div>
 {% endblock %}

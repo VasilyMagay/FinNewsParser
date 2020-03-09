@@ -14,9 +14,22 @@
                     </section>
                 </main>
             </div>
-            <div class="category-products clearfix">
-                {% for site in sites %}
-                    <button type="button" class="btn btn-primary"><a href="{% url 'main:site' site.pk %}">{{ site.name }}</a></button>
-                {% endfor %}
-            </div>
+
+    <table class="table orders_list">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Keywords</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for item in topic_list %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.keywords }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
 {% endblock %}
