@@ -1,3 +1,5 @@
+pymorphy2
+nltk
 beautifulsoup4
 pymysql
 requests

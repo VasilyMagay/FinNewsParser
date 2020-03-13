@@ -38,3 +38,14 @@ https://help.pythonanywhere.com/pages/SMTPForFreeUsers/
 Первоначальное заполнение сведениями о сайтах:
 
 python manage.py init_sites
+
+
+<b>Загрузка стоп-слов:</b>
+
+import nltk
+
+nltk.download('stopwords')
+
+<b>Обновить русский морфологический словарь:</b>
+
+pip install -U pymorphy2-dicts-ru

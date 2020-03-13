@@ -12,9 +12,12 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import TimeoutException
+from news_parser.settings import BASE_DIR
 
 FIREFOX_EXECUTABLE_PATH = r'C:\Program Files\Geckodriver\geckodriver.exe'
-BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+
+
+# BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
 
 
 class NewsProvider(metaclass=abc.ABCMeta):
@@ -22,6 +25,10 @@ class NewsProvider(metaclass=abc.ABCMeta):
     site_id = None
     SITE_DBNAME = 'mainapp_site'
     NEWS_DBNAME = 'mainapp_news'
+    TOPIC_DBNAME = 'mainapp_topic'
+    USERS_DBNAME = 'finnews.authapp_siteuser'
+    TOPIC_NEWS_DBNAME = 'mainapp_topicnews'
+    TOPIC_SITE_DBNAME = 'mainapp_topicsite'
 
     def __init__(self):
         self.site_name = ''
@@ -107,6 +114,7 @@ class FinamNewsProvider(NewsProvider):
 
         page_num = 0
         news = []
+        check_ref = []
 
         while True:
             page_num += 1
@@ -135,24 +143,39 @@ class FinamNewsProvider(NewsProvider):
                     link_text = ''
                     try:
                         link_text = link.attrs['href']
-                    except:
+                    except Exception as err:
                         pass
                     finally:
                         pass
                     if link_text:
                         brief_info = str(obj.p.text).strip()
                         if brief_info:
-                            news.append(
-                                {
-                                    'news_date': datetime.datetime.strptime(date_str + ' ' + date_s, '%d.%m.%Y %H:%M'),
-                                    'ref': f'https://www.finam.ru{link_text}',
-                                    'brief_info': brief_info,
-                                    'info': ''
-                                }
-                            )
+                            if not link_text.startswith('/webinars') and not link_text.startswith('/infinity') and \
+                                    link_text not in check_ref:
+                                if link_text.startswith('http'):
+                                    news_ref = link_text
+                                else:
+                                    news_ref = f'https://www.finam.ru{link_text}'
+                                news.append(
+                                    {
+                                        'news_date': datetime.datetime.strptime(date_str + ' ' + date_s,
+                                                                                '%d.%m.%Y %H:%M'),
+                                        'ref': news_ref,
+                                        'brief_info': brief_info,
+                                        'raw_info': '',
+                                    }
+                                )
+                                check_ref.append(link_text)
 
             if lines_cnt == 0:
                 break
+
+        # Поучение полного текста новостей для возможности полноценной фильтрации
+
+        for item in news:
+            item['raw_info'] = FinamNewsProvider.get_news_info(browser, item['ref'])
+            # print(f'Info={item["info"]}')
+            # break
 
         # Запись новостей в базу
 
@@ -162,22 +185,23 @@ class FinamNewsProvider(NewsProvider):
             cur = con.cursor()
 
             sql = f"DELETE FROM {self.NEWS_DBNAME} WHERE id > 0 AND site_id={self.site_id} AND " \
-                  f"news_date >= '{date_date.combine(date_date.date(), date_date.min.time())}' AND " \
-                  f"news_date <= '{date_date.combine(date_date.date(), date_date.max.time())}';"
+                  f"news_date >= '{beg_date_str(date_date)}' AND " \
+                  f"news_date <= '{end_date_str(date_date)}';"
             # print(sql)
             cur.execute(sql)
 
-            check_ref = []
             for one_news in news:
-                if not one_news['ref'] in check_ref:
-                    sql = f"INSERT INTO {self.NEWS_DBNAME} (site_id, news_date, ref, brief_info, info) " \
-                          f"VALUES ({self.site_id}, '{one_news['news_date']}', " \
-                          f"'{one_news['ref']}', '{one_news['brief_info']}', '{one_news['info']}');"
+                try:
+                    raw_text_info = FinamNewsProvider.prepare_news_text(one_news['raw_info'])
+                    sql = f"INSERT INTO {self.NEWS_DBNAME} (site_id, news_date, ref, brief_info, raw_info, info, " \
+                          f"raw_converted) VALUES ({self.site_id}, '{one_news['news_date']}', " \
+                          f"'{one_news['ref']}', '{one_news['brief_info']}', '{raw_text_info}', '', False);"
                     # print(sql)
                     cur.execute(sql)
-                    check_ref.append(one_news['ref'])
+                    con.commit()
+                except Exception as err:
+                    print(f'ERROR: {sql}, {str(err)}. INFO={raw_text_info}')
 
-            con.commit()
             con.close()
 
     @staticmethod
@@ -190,6 +214,42 @@ class FinamNewsProvider(NewsProvider):
         return 'rqdate{0}{1}{2}'.format(hex(int(date_str[:2]))[2:].rjust(2, '0').upper(),
                                         hex(int(date_str[3:5]))[2:].rjust(2, '0').upper(),
                                         hex(int(date_str[6:]))[2:].rjust(3, '0').upper())
+
+    @staticmethod
+    def get_news_info(browser, url):
+        result = ''
+
+        try:
+            read_page = browser.get_html(url, show_message=True)
+
+            if not read_page['error']:
+                html_doc = read_page['html']
+                bs_obj = BeautifulSoup(html_doc, features="html.parser")
+
+                if url.startswith('http://bonds'):
+                    lines_cnt = 0
+                    for obj in bs_obj.findAll("td", id="content-block"):
+                        lines_cnt += 1
+                        for link in obj.find_all("p"):
+                            current_p = link.text
+                            result += current_p
+                else:
+                    lines_cnt = 0
+                    for obj in bs_obj.findAll("div", class_="f-newsitem-text"):
+                        lines_cnt += 1
+                        for link in obj.find_all("p"):
+                            current_p = link.text
+                            result += current_p
+        except Exception as err:
+            result = f'{url}\n{str(err)}'
+        return result
+
+    @staticmethod
+    def prepare_news_text(info):
+        s = info.replace('%', '%%')
+        s = s.replace('\'', ' ')
+        s = s.replace('\"', ' ')
+        return s
 
 
 class NewsFabric:
@@ -304,6 +364,14 @@ class BrowserFabric:
             return FireFoxBrowser()
         else:
             return None
+
+
+def beg_date_str(date_date):
+    return date_date.combine(date_date.date(), date_date.min.time())
+
+
+def end_date_str(date_date):
+    return date_date.combine(date_date.date(), date_date.max.time())
 
 
 if __name__ == '__main__':
