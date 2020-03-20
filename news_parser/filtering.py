@@ -1,11 +1,14 @@
 import datetime
 import pymorphy2
 import re
-
-from news_parser.parser import NewsProvider, beg_date_str, end_date_str
+import logging.config
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 from string import punctuation
+
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('filtering')
 
 my_stopwords = stopwords.words('russian') + [a for a in punctuation]
 
@@ -53,6 +56,7 @@ def convert_news(news):
 
 
 def raw_conversion(site_id, date_date):
+    logger.info('Connecting to the database...')
     con = NewsProvider.connect_db()
     cur = con.cursor()
 
@@ -61,10 +65,12 @@ def raw_conversion(site_id, date_date):
           f"news_date <= '{end_date_str(date_date)}' AND " \
           f"raw_converted = False;"
     # print(sql)
-    cur.execute(sql)
+    # cur.execute(sql)
+    exec_sql(logger, cur, sql)
 
     rows = cur.fetchall()
     rows_cnt = cur.rowcount
+    logger.info(f'Site ID {site_id}, Date {date_date}, Items to proceed: {rows_cnt}')
     for row in rows:
         compressed_news = convert_news(row['raw_info'])
         compressed_news_str = ','.join(compressed_news)
@@ -72,16 +78,18 @@ def raw_conversion(site_id, date_date):
               f"SET info = '{compressed_news_str}', raw_converted = True " \
               f"WHERE id = {row['id']}"
         # print(sql)
-        cur.execute(sql)
+        # cur.execute(sql)
+        exec_sql(logger, cur, sql)
         con.commit()
         # print(row['id'])
         # for item in compressed_news:
         #     print(f'{item}')
 
     con.close()
-    return rows_cnt
+    logger.info('Connection closed')
+    return
 
 
 if __name__ == '__main__':
-    l = raw_conversion(1, datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
-    print(f'Обработано записей: {l}')
+    raw_conversion(1, datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
+    # print(f'Обработано записей: {l}')

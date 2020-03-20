@@ -3,6 +3,7 @@ import abc
 import pymysql
 import pymysql.cursors
 import datetime
+import logging.config
 
 from os import path
 
@@ -13,6 +14,9 @@ from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import TimeoutException
 from news_parser.settings import BASE_DIR
+
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('parsing')
 
 FIREFOX_EXECUTABLE_PATH = r'C:\Program Files\Geckodriver\geckodriver.exe'
 
@@ -52,7 +56,8 @@ class NewsProvider(metaclass=abc.ABCMeta):
 
         con = NewsProvider.connect_db()
         cur = con.cursor()
-        cur.execute(f"SELECT * FROM {self.SITE_DBNAME} WHERE name=%s", self.site_name)
+        # cur.execute(f"SELECT * FROM {self.SITE_DBNAME} WHERE name=%s", self.site_name)
+        exec_sql(logger, cur, f"SELECT * FROM {self.SITE_DBNAME} WHERE name=%s", self.site_name)
 
         site = cur.fetchone()
         if len(site) > 0:
@@ -93,12 +98,14 @@ class FinamNewsProvider(NewsProvider):
         :param news_date: дата в формате '14.02.2020' или datetime
         :return:
         """
+        logger.info(f'FireFox, collecting news from \'{self.site_name}\', Date: {news_date}')
+        logger.info('Connecting to the browser...')
         browser = BrowserFabric.create_browser('FireFox')
         browser.connect()
         if not browser.is_connected():
             browser.disconnect()
             return
-
+        logger.info('Browser is connected')
         if type(news_date) is str:
             date_str = news_date
             date_date = datetime.datetime.strptime(news_date, "%d.%m.%Y")
@@ -106,7 +113,7 @@ class FinamNewsProvider(NewsProvider):
             date_str = news_date.strftime("%d.%m.%Y")
             date_date = news_date
 
-            # url = "https://www.finam.ru/analysis/united/rqdate0E027E4"
+        # url = "https://www.finam.ru/analysis/united/rqdate0E027E4"
         maim_url = str(self.site_ref)
         if maim_url[-1] != '/':
             maim_url += '/'
@@ -124,13 +131,16 @@ class FinamNewsProvider(NewsProvider):
             else:
                 url = maim_url + '/?page=' + str(page_num)
             # print(f'URL={url}')
-            read_page = browser.get_html(url, show_message=True)
+            logger.info(f'URL: {url}')
+            logger.info(f'Reading page...')
+            read_page = browser.get_html(url, show_message=False)
 
             if read_page['error']:
+                logger.error(read_page['error'])
                 break
 
             html_doc = read_page['html']
-
+            logger.info(f'Parsing titles...')
             bs_obj = BeautifulSoup(html_doc, features="html.parser")
 
             lines_cnt = 0
@@ -144,6 +154,7 @@ class FinamNewsProvider(NewsProvider):
                     try:
                         link_text = link.attrs['href']
                     except Exception as err:
+                        logger.exception()
                         pass
                     finally:
                         pass
@@ -170,17 +181,20 @@ class FinamNewsProvider(NewsProvider):
             if lines_cnt == 0:
                 break
 
-        # Поучение полного текста новостей для возможности полноценной фильтрации
+        logger.info(f'{len(news)} news items is found')
 
+        # Поучение полного текста новостей для возможности полноценной фильтрации
+        logger.info('Parsing full info...')
         for item in news:
             item['raw_info'] = FinamNewsProvider.get_news_info(browser, item['ref'])
             # print(f'Info={item["info"]}')
             # break
 
         # Запись новостей в базу
-
+        logger.info('Writing to the database...')
         if self.site_id is not None:
             # print(news)
+            logger.info('Connecting to the database...')
             con = NewsProvider.connect_db()
             cur = con.cursor()
 
@@ -188,7 +202,8 @@ class FinamNewsProvider(NewsProvider):
                   f"news_date >= '{beg_date_str(date_date)}' AND " \
                   f"news_date <= '{end_date_str(date_date)}';"
             # print(sql)
-            cur.execute(sql)
+            exec_sql(logger, cur, sql)
+            # cur.execute(sql)
 
             for one_news in news:
                 try:
@@ -200,9 +215,11 @@ class FinamNewsProvider(NewsProvider):
                     cur.execute(sql)
                     con.commit()
                 except Exception as err:
-                    print(f'ERROR: {sql}, {str(err)}. INFO={raw_text_info}')
+                    logger.exception()
+                    logger.info(f'ERROR: {sql}, INFO=\'{raw_text_info}\'')
 
             con.close()
+            logger.info('Connection closed')
 
     @staticmethod
     def date_ref(date_str):
@@ -216,11 +233,11 @@ class FinamNewsProvider(NewsProvider):
                                         hex(int(date_str[6:]))[2:].rjust(3, '0').upper())
 
     @staticmethod
-    def get_news_info(browser, url):
+    def get_news_info(browser, url, show_message=False):
         result = ''
 
         try:
-            read_page = browser.get_html(url, show_message=True)
+            read_page = browser.get_html(url, show_message=show_message)
 
             if not read_page['error']:
                 html_doc = read_page['html']
@@ -242,6 +259,7 @@ class FinamNewsProvider(NewsProvider):
                             result += current_p
         except Exception as err:
             result = f'{url}\n{str(err)}'
+            logger.exception()
         return result
 
     @staticmethod
@@ -374,6 +392,14 @@ def end_date_str(date_date):
     return date_date.combine(date_date.date(), date_date.max.time())
 
 
+def exec_sql(my_logger, cur, sql, *args, **kwargs):
+    try:
+        cur.execute(sql, *args, **kwargs)
+    except Exception as err:
+        my_logger.exception()
+        my_logger.info(f'SQL: {sql}')
+
+
 if __name__ == '__main__':
     news_provider = NewsFabric.create_provider('Финам')
-    news_provider.collect_news('14.02.2020')
+    news_provider.collect_news('15.02.2020')
