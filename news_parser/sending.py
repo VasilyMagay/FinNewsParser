@@ -199,5 +199,5 @@ def send_message(topic, news, date_date):
     return result
 
 
-if __name__ == '__main__':
-    sending(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
+# if __name__ == '__main__':
+#     sending(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))

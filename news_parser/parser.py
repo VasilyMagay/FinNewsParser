@@ -400,6 +400,6 @@ def exec_sql(my_logger, cur, sql, *args, **kwargs):
         my_logger.info(f'SQL: {sql}')
 
 
-if __name__ == '__main__':
-    news_provider = NewsFabric.create_provider('Финам')
-    news_provider.collect_news('15.02.2020')
+# if __name__ == '__main__':
+#     news_provider = NewsFabric.create_provider('Финам')
+#     news_provider.collect_news('15.02.2020')

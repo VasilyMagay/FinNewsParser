@@ -91,5 +91,5 @@ def sorting(date_date):
     return
 
 
-if __name__ == '__main__':
-    sorting(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
+# if __name__ == '__main__':
+#     sorting(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))

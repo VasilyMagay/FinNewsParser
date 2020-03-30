@@ -90,6 +90,22 @@ def raw_conversion(site_id, date_date):
     return
 
 
-if __name__ == '__main__':
-    raw_conversion(1, datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
-    # print(f'Обработано записей: {l}')
+def filtering(date_date):
+    logger.info('Connecting to the database...')
+    con = NewsProvider.connect_db()
+    cur = con.cursor()
+
+    sql = f"SELECT id FROM {NewsProvider.SITE_DBNAME};"
+    exec_sql(logger, cur, sql)
+
+    rows = cur.fetchall()
+    for row in rows:
+        raw_conversion(row['id'], date_date)
+
+    con.close()
+    logger.info('Connection closed')
+
+
+# if __name__ == '__main__':
+#     raw_conversion(1, datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
+#     # print(f'Обработано записей: {l}')
