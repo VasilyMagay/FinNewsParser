@@ -3,11 +3,15 @@
 import datetime
 import smtplib
 import ssl
+import logging.config
 
-from news_parser.parser import NewsProvider, beg_date_str, end_date_str
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
 from news_parser.my_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_HOST
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger('sending')
 
 MESSAGE_TEMPLATE = """
 <!DOCTYPE html>
@@ -77,6 +81,7 @@ MESSAGE_STYLE = """
 
 
 def sending(date_date):
+    logger.info('Connecting to the database...')
     con = NewsProvider.connect_db()
     cur = con.cursor()
 
@@ -90,10 +95,12 @@ def sending(date_date):
           f"    topic_news.news_date >= '{beg_date_str(date_date)}' AND " \
           f"    topic_news.news_date <= '{end_date_str(date_date)}';"
     # print(sql)
-    cur.execute(sql)
+    # cur.execute(sql)
+    exec_sql(logger, cur, sql)
 
     topics = cur.fetchall()
     topics_cnt = cur.rowcount
+    logger.info(f'Date: {date_date}, Topics to send: {topics_cnt}')
     # Перебираем топики с неотправленными новостями за выбранную дату.
     # Для каждого топика будет отдельное письмо.
     for topic in topics:
@@ -107,7 +114,8 @@ def sending(date_date):
               f"    topic_news.news_date >= '{beg_date_str(date_date)}' AND " \
               f"    topic_news.news_date <= '{end_date_str(date_date)}';"
         # print(sql)
-        cur.execute(sql)
+        # cur.execute(sql)
+        exec_sql(logger, cur, sql)
 
         news = cur.fetchall()
         news_cnt = cur.rowcount
@@ -119,10 +127,12 @@ def sending(date_date):
                           f"SET send_date = '{send_date}', is_send = True " \
                           f"WHERE id = {news_item['id']}"
                     # print(sql)
-                    cur.execute(sql)
+                    # cur.execute(sql)
+                    exec_sql(logger, cur, sql)
                     con.commit()
 
     con.close()
+    logger.info('Connection closed')
     return
 
 
@@ -145,6 +155,7 @@ def create_page(topic, news, date_date):
 
 
 def send_message(topic, news, date_date):
+    logger.info(f"Topic \'{topic['name']}\', Date: {date_date}, To: {topic['email']}")
     sender_email = EMAIL_HOST_USER
     receiver_email = topic['email']
 
@@ -181,10 +192,12 @@ def send_message(topic, news, date_date):
                 sender_email, receiver_email, message.as_string()
             )
         result = True
+        logger.info('Message is send successfully')
     except Exception as err:
+        logger.exception()
         pass
     return result
 
 
-if __name__ == '__main__':
-    sending(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
+# if __name__ == '__main__':
+#     sending(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
