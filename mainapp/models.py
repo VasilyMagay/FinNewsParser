@@ -32,8 +32,10 @@ class News(models.Model):
 
     news_date = models.DateTimeField(blank=True, verbose_name='News date')
     ref = models.CharField(max_length=1024, blank=False, verbose_name='Reference')
-    brief_info = models.TextField(blank=True, verbose_name='Brief')
-    info = models.TextField(blank=True, verbose_name='News')
+    brief_info = models.TextField(blank=True, verbose_name='News (brief)')
+    info = models.TextField(blank=True, verbose_name='News (words)', default='')
+    raw_info = models.TextField(blank=True, verbose_name='News (raw)', default='')
+    raw_converted = models.BooleanField(verbose_name='Raw converted', default=False)
 
 
 class TopicSite(models.Model):
@@ -42,3 +44,14 @@ class TopicSite(models.Model):
     """
     topic = models.ForeignKey(Topic, verbose_name='Topic', on_delete=models.CASCADE)
     site = models.ForeignKey(Site, verbose_name='Site', on_delete=models.CASCADE)
+
+
+class TopicNews(models.Model):
+    """
+    Новости, отобранные по топику
+    """
+    topic = models.ForeignKey(Topic, verbose_name='Topic', on_delete=models.CASCADE)
+    news = models.ForeignKey(News, verbose_name='News', on_delete=models.CASCADE)
+    news_date = models.DateTimeField(blank=True, verbose_name='News date', null=True)
+    is_send = models.BooleanField(verbose_name='Is send?', default=False)
+    send_date = models.DateTimeField(blank=True, verbose_name='Send date', null=True)
