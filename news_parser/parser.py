@@ -106,6 +106,7 @@ class FinamNewsProvider(NewsProvider):
         browser = BrowserFabric.create_browser('FireFox')
         browser.connect()
         if not browser.is_connected():
+            logger.error(browser.connect_error)
             browser.disconnect()
             return
         logger.info('Browser is connected')
