@@ -69,4 +69,9 @@ sudo mv geckodriver /usr/local/bin/
 </li>
 
 
+<br>
 https://help.pythonanywhere.com/pages/selenium/
+
+Firefox only, selenium 2, geckodriver not required
+
+pip install "selenium<3"

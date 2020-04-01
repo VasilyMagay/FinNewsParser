@@ -344,10 +344,7 @@ class FireFoxBrowser(Browser):
                     # capabilities=capabilities
                 )
             else:
-                self.browser = webdriver.Firefox(
-                    options=options,
-                    firefox_profile=profile,
-                )
+                self.browser = webdriver.Firefox()
 
         except WebDriverException as err:
             self.connect_error = err.msg
