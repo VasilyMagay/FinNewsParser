@@ -14,3 +14,4 @@ news_parser/production_settings.py
 *.bat
 authapp/migrations/
 mainapp/migrations/
+event.log.*
