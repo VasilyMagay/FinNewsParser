@@ -67,3 +67,6 @@ sudo chmod +x geckodriver
 Отправляем драйвер в папку где его будет искать Selenium: 
 sudo mv geckodriver /usr/local/bin/
 </li>
+
+
+https://help.pythonanywhere.com/pages/selenium/
