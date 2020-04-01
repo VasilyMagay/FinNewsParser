@@ -49,3 +49,21 @@ nltk.download('stopwords')
 <b>Обновить русский морфологический словарь:</b>
 
 pip install -U pymorphy2-dicts-ru
+
+<h2>Установка geckodriver под Ubuntu</h2>
+<li>Заходим на сайт https://github.com/mozilla/geckodriver/releases/, проверяем ссылку на последнюю версию архива</li>
+<li>Скачиваем архив:
+wget https://github.com/mozilla/geckodriver/releases/download/v0.26.0/geckodriver-v0.26.0-linux64.tar.gz
+</li>
+<li>
+Вытаскиваем файл из архива: 
+tar -xvzf geckodriver*
+</li>
+<li>
+Даем нужные права драйверу: 
+sudo chmod +x geckodriver
+</li>
+<li>
+Отправляем драйвер в папку где его будет искать Selenium: 
+sudo mv geckodriver /usr/local/bin/
+</li>
