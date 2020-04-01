@@ -5,10 +5,11 @@ import smtplib
 import ssl
 import logging.config
 
-from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
-from news_parser.my_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_HOST
+from parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+from my_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_HOST
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from argparse import ArgumentParser
 
 logging.config.fileConfig('logging.conf')
 logger = logging.getLogger('sending')
@@ -199,5 +200,12 @@ def send_message(topic, news, date_date):
     return result
 
 
-# if __name__ == '__main__':
-#     sending(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-d', '--date', type=str,
+        required=False, help='Date to proceed (format dd.mm.yyyy)'
+    )
+    args = parser.parse_args()
+    if args.date:
+        sending(datetime.datetime.strptime(args.date, "%d.%m.%Y"))

@@ -13,12 +13,15 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import TimeoutException
-from news_parser.settings import BASE_DIR
+from settings import BASE_DIR, DEBUG
+from argparse import ArgumentParser
 
 logging.config.fileConfig('logging.conf')
 logger = logging.getLogger('parsing')
 
 FIREFOX_EXECUTABLE_PATH = r'C:\Program Files\Geckodriver\geckodriver.exe'
+if not DEBUG:
+    FIREFOX_EXECUTABLE_PATH = r'/home/magv/geckodriver'
 
 
 # BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
@@ -400,6 +403,13 @@ def exec_sql(my_logger, cur, sql, *args, **kwargs):
         my_logger.info(f'SQL: {sql}')
 
 
-# if __name__ == '__main__':
-#     news_provider = NewsFabric.create_provider('Финам')
-#     news_provider.collect_news('15.02.2020')
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-d', '--date', type=str,
+        required=False, help='Date to proceed (format dd.mm.yyyy)'
+    )
+    args = parser.parse_args()
+    if args.date:
+        news_provider = NewsFabric.create_provider('Финам')
+        news_provider.collect_news(args.date)

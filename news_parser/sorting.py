@@ -1,6 +1,7 @@
 import datetime
 import logging.config
-from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+from parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+from argparse import ArgumentParser
 
 logging.config.fileConfig('logging.conf')
 logger = logging.getLogger('sorting')
@@ -91,5 +92,12 @@ def sorting(date_date):
     return
 
 
-# if __name__ == '__main__':
-#     sorting(datetime.datetime.strptime('14.02.2020', "%d.%m.%Y"))
+if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument(
+        '-d', '--date', type=str,
+        required=False, help='Date to proceed (format dd.mm.yyyy)'
+    )
+    args = parser.parse_args()
+    if args.date:
+        sorting(datetime.datetime.strptime(args.date, "%d.%m.%Y"))
