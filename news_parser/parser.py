@@ -16,6 +16,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import TimeoutException
 from settings import BASE_DIR, DEBUG
 from argparse import ArgumentParser
+from grab import Grab
 
 logging.config.fileConfig('logging.conf')
 logger = logging.getLogger('parsing')
@@ -104,6 +105,7 @@ class FinamNewsProvider(NewsProvider):
         """
         logger.info(f'FireFox, collecting news from \'{self.site_name}\', Date: {news_date}')
         logger.info('Connecting to the browser...')
+        # browser = BrowserFabric.create_browser('Grab')
         browser = BrowserFabric.create_browser('FireFox')
         browser.connect()
         if not browser.is_connected():
@@ -386,13 +388,55 @@ class FireFoxBrowser(Browser):
         return result
 
 
+class GrabBrowser(Browser):
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self):
+        self.connect_error = ''
+        try:
+            self.browser = Grab()
+        except Exception as err:
+            self.connect_error = err.msg
+            return
+
+    def disconnect(self):
+        if self.browser:
+            self.browser = None
+
+    def get_html(self, url, show_message=False):
+        result = {'html': '', 'status_code': None, 'error': ''}
+        # g.response.code
+        # g.response.error_code
+        # g.response.error_msg
+        # g.doc.body
+
+        self.browser.go(url)
+        result['status_code'] = self.browser.response.code
+        result['error'] = self.browser.response.error_msg
+
+        if show_message:
+            # print('================================================')
+            print(url)
+            # print(f'Status Code={page.status_code}')
+
+        if not result['error']:
+            result['html'] = self.browser.doc.body
+
+        return result
+
+
 class BrowserFabric:
     BROWSER_FIREFOX = 'FireFox'
+    BROWSER_GRAB = 'Grab'
 
     @staticmethod
     def create_browser(browser_name):
         if browser_name == __class__.BROWSER_FIREFOX:
             return FireFoxBrowser()
+        elif browser_name == __class__.BROWSER_GRAB:
+            return GrabBrowser()
         else:
             return None
 
@@ -414,6 +458,8 @@ def exec_sql(my_logger, cur, sql, *args, **kwargs):
 
 
 if __name__ == '__main__':
+    # news_provider = NewsFabric.create_provider('Финам')
+    # news_provider.collect_news('30.03.2020')
     parser = ArgumentParser()
     parser.add_argument(
         '-d', '--date', type=str,
