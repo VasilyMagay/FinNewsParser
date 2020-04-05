@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-# from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import TimeoutException
 from settings import BASE_DIR, DEBUG
@@ -23,7 +23,7 @@ logger = logging.getLogger('parsing')
 
 FIREFOX_EXECUTABLE_PATH = r'C:\Program Files\Geckodriver\geckodriver.exe'
 if not DEBUG:
-    FIREFOX_EXECUTABLE_PATH = r'/home/magv/geckodriver'
+    FIREFOX_EXECUTABLE_PATH = r'/usr/local/bin/geckodriver'
 
 
 # BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
@@ -334,19 +334,19 @@ class FireFoxBrowser(Browser):
             "Opera/9.80 (Android 2.2; Opera Mobi/-2118645896; U; pl) Presto/2.7.60 Version/10.5"
         )
 
-        # capabilities = DesiredCapabilities().FIREFOX.copy()
-        # capabilities["marionette"] = False
+        capabilities = DesiredCapabilities().FIREFOX.copy()
+        capabilities["marionette"] = False
 
         try:
-            if DEBUG:
-                self.browser = webdriver.Firefox(
-                    executable_path=FIREFOX_EXECUTABLE_PATH,
-                    options=options,
-                    firefox_profile=profile,
-                    # capabilities=capabilities
-                )
-            else:
-                self.browser = webdriver.Firefox()
+            # if DEBUG:
+            self.browser = webdriver.Firefox(
+                executable_path=FIREFOX_EXECUTABLE_PATH,
+                options=options,
+                firefox_profile=profile,
+                capabilities=capabilities
+            )
+            # else:
+            #     self.browser = webdriver.Firefox()
 
         except WebDriverException as err:
             self.connect_error = err.msg

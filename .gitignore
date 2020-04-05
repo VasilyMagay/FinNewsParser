@@ -15,3 +15,4 @@ news_parser/production_settings.py
 authapp/migrations/
 mainapp/migrations/
 event.log.*
+requirements_dev.txt
