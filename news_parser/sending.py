@@ -4,14 +4,22 @@ import datetime
 import smtplib
 import ssl
 import logging.config
+import socket
 
-from parser import NewsProvider, beg_date_str, end_date_str, exec_sql
-from my_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_HOST
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+from news_parser.my_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_HOST
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from argparse import ArgumentParser
+from os import path
 
-logging.config.fileConfig('logging.conf')
+BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+if socket.gethostname() == 'magv-hp':
+    DEBUG = True
+else:
+    DEBUG = False
+
+logging.config.fileConfig(path.join(BASE_DIR, 'news_parser', 'logging.conf'))
 logger = logging.getLogger('sending')
 
 MESSAGE_TEMPLATE = """

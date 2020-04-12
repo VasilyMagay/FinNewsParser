@@ -2,13 +2,21 @@ import datetime
 import pymorphy2
 import re
 import logging.config
-from parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+import socket
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 from string import punctuation
 from argparse import ArgumentParser
+from os import path
 
-logging.config.fileConfig('logging.conf')
+BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+if socket.gethostname() == 'magv-hp':
+    DEBUG = True
+else:
+    DEBUG = False
+
+logging.config.fileConfig(path.join(BASE_DIR, 'news_parser', 'logging.conf'))
 logger = logging.getLogger('filtering')
 
 my_stopwords = stopwords.words('russian') + [a for a in punctuation]

@@ -1,9 +1,17 @@
 import datetime
 import logging.config
-from parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+import socket
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
 from argparse import ArgumentParser
+from os import path
 
-logging.config.fileConfig('logging.conf')
+BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+if socket.gethostname() == 'magv-hp':
+    DEBUG = True
+else:
+    DEBUG = False
+
+logging.config.fileConfig(path.join(BASE_DIR, 'news_parser', 'logging.conf'))
 logger = logging.getLogger('sorting')
 
 
