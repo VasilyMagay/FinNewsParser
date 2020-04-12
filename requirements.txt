@@ -1,4 +1,3 @@
-schedule
 pymorphy2
 nltk
 beautifulsoup4
@@ -6,8 +5,8 @@ pymysql
 requests
 selenium
 feedparser
-Django
-mysqlclient
+Django==3.0.3
+mysqlclient==1.4.6
 pycurl
 lxml
 grab
