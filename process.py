@@ -1,3 +1,6 @@
+"""
+process.py
+"""
 import datetime
 
 from news_parser.parser import NewsFabric
@@ -7,10 +10,15 @@ from news_parser.sending import sending
 
 
 def job_news(date_date):
+    """
+    Сводная процедура сбора и рассылки новостей за выбранную дату
+    :param date_date:
+    :return:
+    """
     parsing_finished = False
     filtering_finished = False
     sorting_finished = False
-    sending_finished = False
+    # sending_finished = False
 
     try:
         news_provider = NewsFabric.create_provider('Финам')
@@ -36,7 +44,7 @@ def job_news(date_date):
     if sorting_finished:
         try:
             sending(date_date)
-            sorting_finished = True
+            # sorting_finished = True
         except Exception as err:
             pass
 

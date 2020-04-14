@@ -1,5 +1,7 @@
-from django.contrib import admin
-from django.urls import path, re_path
+"""
+mainapp/urls.py
+"""
+from django.urls import re_path
 import mainapp.views as mainapp
 
 app_name = 'mainapp'

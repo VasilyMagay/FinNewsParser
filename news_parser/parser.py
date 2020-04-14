@@ -1,28 +1,27 @@
-import requests
+"""
+news_parser/parser.py
+"""
 import abc
-import pymysql
-import pymysql.cursors
 import datetime
 import logging.config
 import socket
 
 from os import path
+from argparse import ArgumentParser
 
+import requests
+import pymysql
+import pymysql.cursors
+
+from grab import Grab
 from bs4 import BeautifulSoup
-
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import TimeoutException
-from argparse import ArgumentParser
-from grab import Grab
 
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
-if socket.gethostname() == 'magv-hp':
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = bool(socket.gethostname() == 'magv-hp')
 
 logging.config.fileConfig(path.join(BASE_DIR, 'news_parser', 'logging.conf'))
 logger = logging.getLogger('parsing')
@@ -33,6 +32,9 @@ if not DEBUG:
 
 
 class NewsProvider(metaclass=abc.ABCMeta):
+    """
+    Общий провайдер новостей
+    """
     site_ref = ''
     site_id = None
     SITE_DBNAME = 'mainapp_site'
@@ -52,7 +54,6 @@ class NewsProvider(metaclass=abc.ABCMeta):
         :param news_date:
         :return:
         """
-        pass
 
     def get_site_info(self):
         """
@@ -65,7 +66,11 @@ class NewsProvider(metaclass=abc.ABCMeta):
         con = NewsProvider.connect_db()
         cur = con.cursor()
         # cur.execute(f"SELECT * FROM {self.SITE_DBNAME} WHERE name=%s", self.site_name)
-        exec_sql(logger, cur, f"SELECT * FROM {self.SITE_DBNAME} WHERE name=%s", self.site_name)
+        exec_sql(
+            logger,
+            cur,
+            f"SELECT * FROM {self.SITE_DBNAME} WHERE name=%s",
+            self.site_name)
 
         site = cur.fetchone()
         if len(site) > 0:
@@ -76,6 +81,10 @@ class NewsProvider(metaclass=abc.ABCMeta):
 
     @staticmethod
     def connect_db():
+        """
+        Соединение с базой данных
+        :return: connect()
+        """
         mysql_config = {}
         with open(path.join(BASE_DIR, 'mysql.cnf'), 'r') as file:
             lines = file.read().splitlines()
@@ -94,6 +103,9 @@ class NewsProvider(metaclass=abc.ABCMeta):
 
 
 class FinamNewsProvider(NewsProvider):
+    """
+    Провайдер новостей Финам
+    """
 
     def __init__(self):
         super().__init__()
@@ -102,11 +114,12 @@ class FinamNewsProvider(NewsProvider):
 
     def collect_news(self, news_date):
         """
-
+        Собираем новости
         :param news_date: дата в формате '14.02.2020' или datetime
         :return:
         """
-        logger.info(f'FireFox, collecting news from \'{self.site_name}\', Date: {news_date}')
+        logger.info(
+            f'FireFox, collecting news from \'{self.site_name}\', Date: {news_date}')
         logger.info('Connecting to the browser...')
         # browser = BrowserFabric.create_browser('Grab')
         browser = BrowserFabric.create_browser('FireFox')
@@ -116,10 +129,10 @@ class FinamNewsProvider(NewsProvider):
             browser.disconnect()
             return
         logger.info('Browser is connected')
-        if type(news_date) is str:
+        if isinstance(news_date, str):
             date_str = news_date
             date_date = datetime.datetime.strptime(news_date, "%d.%m.%Y")
-        elif type(news_date) is datetime.datetime:
+        elif isinstance(news_date, datetime.datetime):
             date_str = news_date.strftime("%d.%m.%Y")
             date_date = news_date
 
@@ -156,7 +169,8 @@ class FinamNewsProvider(NewsProvider):
             lines_cnt = 0
             for obj in bs_obj.findAll("div", class_="ln"):
                 lines_cnt += 1
-                for link in obj.find_all(lambda tag: tag.name == 'a' and tag.get('class') != ['section']):
+                for link in obj.find_all(
+                        lambda tag: tag.name == 'a' and tag.get('class') != ['section']):
                     date_s = obj.find("span", class_="date").text
                     if not date_s:
                         date_s = '00:00'
@@ -164,14 +178,14 @@ class FinamNewsProvider(NewsProvider):
                     try:
                         link_text = link.attrs['href']
                     except Exception as err:
-                        logger.exception()
-                        pass
+                        logger.exception(f'{err}')
                     finally:
                         pass
                     if link_text:
                         brief_info = str(obj.p.text).strip()
                         if brief_info:
-                            if not link_text.startswith('/webinars') and not link_text.startswith('/infinity') and \
+                            if not link_text.startswith('/webinars') and \
+                                    not link_text.startswith('/infinity') and \
                                     link_text not in check_ref:
                                 if link_text.startswith('http'):
                                     news_ref = link_text
@@ -179,13 +193,13 @@ class FinamNewsProvider(NewsProvider):
                                     news_ref = f'https://www.finam.ru{link_text}'
                                 news.append(
                                     {
-                                        'news_date': datetime.datetime.strptime(date_str + ' ' + date_s,
-                                                                                '%d.%m.%Y %H:%M'),
+                                        'news_date': datetime.datetime.strptime(
+                                            date_str + ' ' + date_s,
+                                            '%d.%m.%Y %H:%M'),
                                         'ref': news_ref,
                                         'brief_info': brief_info,
                                         'raw_info': '',
-                                    }
-                                )
+                                    })
                                 check_ref.append(link_text)
 
             if lines_cnt == 0:
@@ -193,10 +207,12 @@ class FinamNewsProvider(NewsProvider):
 
         logger.info(f'{len(news)} news items is found')
 
-        # Поучение полного текста новостей для возможности полноценной фильтрации
+        # Поучение полного текста новостей для возможности полноценной
+        # фильтрации
         logger.info('Parsing full info...')
         for item in news:
-            item['raw_info'] = FinamNewsProvider.get_news_info(browser, item['ref'])
+            item['raw_info'] = FinamNewsProvider.get_news_info(
+                browser, item['ref'])
             # print(f'Info={item["info"]}')
             # break
 
@@ -217,10 +233,13 @@ class FinamNewsProvider(NewsProvider):
 
             for one_news in news:
                 try:
-                    raw_text_info = FinamNewsProvider.prepare_news_text(one_news['raw_info'])
-                    sql = f"INSERT INTO {self.NEWS_DBNAME} (site_id, news_date, ref, brief_info, raw_info, info, " \
+                    raw_text_info = FinamNewsProvider.prepare_news_text(
+                        one_news['raw_info'])
+                    sql = f"INSERT INTO {self.NEWS_DBNAME} " \
+                          f"(site_id, news_date, ref, brief_info, raw_info, info, " \
                           f"raw_converted) VALUES ({self.site_id}, '{one_news['news_date']}', " \
-                          f"'{one_news['ref']}', '{one_news['brief_info']}', '{raw_text_info}', '', False);"
+                          f"'{one_news['ref']}', '{one_news['brief_info']}', '{raw_text_info}', " \
+                          f"'', False);"
                     # print(sql)
                     cur.execute(sql)
                     con.commit()
@@ -244,6 +263,13 @@ class FinamNewsProvider(NewsProvider):
 
     @staticmethod
     def get_news_info(browser, url, show_message=False):
+        """
+        Получение тескта новости по ссылке
+        :param browser:
+        :param url:
+        :param show_message:
+        :return:
+        """
         result = ''
 
         try:
@@ -274,24 +300,39 @@ class FinamNewsProvider(NewsProvider):
 
     @staticmethod
     def prepare_news_text(info):
-        s = info.replace('%', '%%')
-        s = s.replace('\'', ' ')
-        s = s.replace('\"', ' ')
-        return s
+        """
+        Предварительная обработка новости
+        :param info:
+        :return:
+        """
+        my_str = info.replace('%', '%%')
+        my_str = my_str.replace('\'', ' ')
+        my_str = my_str.replace('\"', ' ')
+        return my_str
 
 
 class NewsFabric:
+    """
+    Общая фабрика новостей
+    """
     PROVIDER_FINAM = 'Финам'
 
     @staticmethod
     def create_provider(provider_name):
-        if provider_name == __class__.PROVIDER_FINAM:
+        """
+        Выбор провайдера новостей
+        :param provider_name:
+        :return:
+        """
+        if provider_name == NewsFabric.PROVIDER_FINAM:
             return FinamNewsProvider()
-        else:
-            return None
+        return None
 
 
 class Browser(metaclass=abc.ABCMeta):
+    """
+    Браузер
+    """
 
     def __init__(self):
         self.browser = None
@@ -299,24 +340,42 @@ class Browser(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def connect(self):
-        pass
+        """
+        Соединение с браузером
+        :return:
+        """
 
     @abc.abstractmethod
     def disconnect(self):
-        pass
+        """
+        Завершение работы с браузером
+        :return:
+        """
 
     @abc.abstractmethod
     def get_html(self, url, show_message=False):
-        pass
+        """
+        Возвращает html-строку по URL
+        :param url:
+        :param show_message:
+        :return:
+        """
 
     def is_connected(self):
+        """
+        Проверка соединения с браузером
+        :return:
+        """
         return self.browser and len(self.connect_error) == 0
 
 
 class FireFoxBrowser(Browser):
+    """
+    Браузер FireFox
+    """
 
-    def __init__(self):
-        super().__init__()
+    # def __init__(self):
+    #     super().__init__()
 
     def connect(self):
         self.connect_error = ''
@@ -324,8 +383,8 @@ class FireFoxBrowser(Browser):
         options.headless = True  # Не открывать окно браузера
         # options.add_argument('--headless')  # Не открывать окно браузера
 
-        # Sets whether Firefox should accept SSL certificates which have expired, signed by an unknown authority or
-        # are generally untrusted.
+        # Sets whether Firefox should accept SSL certificates which have expired,
+        # signed by an unknown authority or are generally untrusted.
         # options.setAcceptUntrustedCertificates(True)
 
         # FirefoxOptions().setLegacy(true);
@@ -334,31 +393,20 @@ class FireFoxBrowser(Browser):
         profile = webdriver.FirefoxProfile()
         profile.set_preference(
             "general.useragent.override",
-            "Opera/9.80 (Android 2.2; Opera Mobi/-2118645896; U; pl) Presto/2.7.60 Version/10.5"
-        )
+            "Opera/9.80 (Android 2.2; Opera Mobi/-2118645896; U; pl) Presto/2.7.60 Version/10.5")
 
         try:
-            if DEBUG:
-                self.browser = webdriver.Firefox(
-                    executable_path=FIREFOX_EXECUTABLE_PATH,
-                    options=options,
-                    firefox_profile=profile
-                )
-            else:
-                capabilities = DesiredCapabilities().FIREFOX.copy()
-                capabilities["marionette"] = False
-                self.browser = webdriver.Firefox(
-                    executable_path=FIREFOX_EXECUTABLE_PATH,
-                    options=options,
-                    firefox_profile=profile,
-                    capabilities=capabilities
-                )
+            self.browser = webdriver.Firefox(
+                executable_path=FIREFOX_EXECUTABLE_PATH,
+                options=options,
+                firefox_profile=profile
+            )
 
         except WebDriverException as err:
-            self.connect_error = err.msg
+            self.connect_error = err
             return
         except Exception as err:
-            self.connect_error = err.msg
+            self.connect_error = err
             return
 
         # browser.implicitly_wait(10)  # seconds
@@ -395,16 +443,19 @@ class FireFoxBrowser(Browser):
 
 
 class GrabBrowser(Browser):
+    """
+    Браузер Grab
+    """
 
-    def __init__(self):
-        super().__init__()
+    # def __init__(self):
+    #     super().__init__()
 
     def connect(self):
         self.connect_error = ''
         try:
             self.browser = Grab()
         except Exception as err:
-            self.connect_error = err.msg
+            self.connect_error = err
             return
 
     def disconnect(self):
@@ -434,33 +485,60 @@ class GrabBrowser(Browser):
 
 
 class BrowserFabric:
+    """
+    Фабрика браузеров
+    """
     BROWSER_FIREFOX = 'FireFox'
     BROWSER_GRAB = 'Grab'
 
     @staticmethod
     def create_browser(browser_name):
-        if browser_name == __class__.BROWSER_FIREFOX:
+        """
+        Создаем объект браузера
+        :param browser_name:
+        :return:
+        """
+        if browser_name == BrowserFabric.BROWSER_FIREFOX:
             return FireFoxBrowser()
-        elif browser_name == __class__.BROWSER_GRAB:
+        elif browser_name == BrowserFabric.BROWSER_GRAB:
             return GrabBrowser()
-        else:
-            return None
+
+        return None
 
 
 def beg_date_str(date_date):
+    """
+    Начало дня
+    :param date_date:
+    :return: date
+    """
     return date_date.combine(date_date.date(), date_date.min.time())
 
 
 def end_date_str(date_date):
+    """
+    Конец дня
+    :param date_date:
+    :return: date
+    """
     return date_date.combine(date_date.date(), date_date.max.time())
 
 
 def exec_sql(my_logger, cur, sql, *args, **kwargs):
+    """
+    Выполнить запрос SQL
+    :param my_logger:
+    :param cur:
+    :param sql:
+    :param args:
+    :param kwargs:
+    :return:
+    """
     try:
         cur.execute(sql, *args, **kwargs)
     except Exception as err:
         my_logger.exception()
-        my_logger.info(f'SQL: {sql}')
+        my_logger.error(f'SQL: {sql}\nError: {err}')
 
 
 if __name__ == '__main__':

@@ -1,10 +1,13 @@
+"""
+mainapp/management/commands/init_sites.py
+"""
+from collections import namedtuple
 from django.core.management.base import BaseCommand
 from mainapp.models import Site
-from collections import namedtuple
 
 SiteInfo = namedtuple('SiteInfo', 'name ref descr')
 
-sites_info = [
+SITES_INFO = [
     SiteInfo(
         name='Финам',
         ref='https://www.finam.ru/analysis/united/',
@@ -14,13 +17,15 @@ sites_info = [
 
 
 class Command(BaseCommand):
+    """
+    Fill information about sites
+    """
     help = 'Fill information about sites'
 
     def handle(self, *args, **options):
-
         Site.objects.all().delete()
         site_new = 0
-        for site_info in sites_info:
+        for site_info in SITES_INFO:
             Site.objects.create(
                 name=site_info.name,
                 ref=site_info.ref,

@@ -1,28 +1,34 @@
+"""
+news_parser/sorting.py
+"""
 import datetime
 import logging.config
 import socket
-from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
 from argparse import ArgumentParser
 from os import path
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
 
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
-if socket.gethostname() == 'magv-hp':
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = bool(socket.gethostname() == 'magv-hp')
 
 logging.config.fileConfig(path.join(BASE_DIR, 'news_parser', 'logging.conf'))
 logger = logging.getLogger('sorting')
 
 
 def sorting(date_date):
+    """
+    Поиск и разделение всех новостей по топикам
+    :param date_date:
+    :return:
+    """
     logger.info('Connecting to the database...')
     con = NewsProvider.connect_db()
     cur = con.cursor()
 
     sql = f"SELECT topic.id, topic.name, topic.keywords " \
           f"FROM {NewsProvider.TOPIC_DBNAME} AS topic " \
-          f"WHERE inactive = False AND (period_start is NULL OR period_start <= '{beg_date_str(date_date)}') " \
+          f"WHERE inactive = False AND (period_start is NULL OR " \
+          f"    period_start <= '{beg_date_str(date_date)}') " \
           f"    AND (period_end is NULL OR period_end >= '{beg_date_str(date_date)}');"
     # print(sql)
     # cur.execute(sql)
@@ -34,7 +40,8 @@ def sorting(date_date):
     # Перебираем все активные топики
     for topic in topics:
         # Предварительно очищаем ранее отобранные новости по текущему топику и выбранной дате
-        sql = f"DELETE FROM {NewsProvider.TOPIC_NEWS_DBNAME} WHERE id > 0 AND topic_id={topic['id']} AND " \
+        sql = f"DELETE FROM {NewsProvider.TOPIC_NEWS_DBNAME} WHERE id > 0 AND " \
+              f"topic_id={topic['id']} AND " \
               f"news_date >= '{beg_date_str(date_date)}' AND " \
               f"news_date <= '{end_date_str(date_date)}';"
         # print(sql)
@@ -72,7 +79,7 @@ def sorting(date_date):
             exec_sql(logger, cur, sql)
 
             news = cur.fetchall()
-            news_cnt = cur.rowcount
+            # news_cnt = cur.rowcount
             for news_item in news:
                 info_list = news_item['info'].split(',')
                 for keyword in keywords:
@@ -89,7 +96,8 @@ def sorting(date_date):
         # Работаем с найденными новостями
         for item in topic_news:
             # print(item)
-            sql = f"INSERT INTO {NewsProvider.TOPIC_NEWS_DBNAME} (news_id, news_date, topic_id, is_send) " \
+            sql = f"INSERT INTO {NewsProvider.TOPIC_NEWS_DBNAME} " \
+                  f"(news_id, news_date, topic_id, is_send) " \
                   f"VALUES ({item['news_id']}, '{item['news_date']}', {topic['id']}, False);"
             # cur.execute(sql)
             exec_sql(logger, cur, sql)
@@ -97,7 +105,6 @@ def sorting(date_date):
 
     con.close()
     logger.info('Connection closed')
-    return
 
 
 if __name__ == '__main__':
