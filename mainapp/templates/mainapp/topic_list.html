@@ -1,35 +1,40 @@
 {% extends 'mainapp/base.html' %}
 {% load static %}
 {% load cache %}
+<!--{% block title %}FNP: Список топиков{% endblock title %}-->
 
 {% block container %}
-            <div class="container">
-                <header class="padding-site">
-                    {% include 'mainapp/inc/inc__main_menu.html' %}
-                </header>
-                <main>
-                    <section class="">
-                        <div class="">
-                        </div>
-                    </section>
-                </main>
-            </div>
+	 <div class="container">
+		<header class="padding-site">
+			{% include 'mainapp/inc/inc__main_menu.html' %}
+		</header>
+	</div>
+    <div class="categories_list container">
+		<h3>Список топиков</h3>
+        <button class="new_category">
+			<a href="{% url 'main:topic_create' %}">новый</a>
+		</button>
 
-    <table class="table orders_list">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Keywords</th>
-          </tr>
-        </thead>
-        <tbody>
-            {% for item in topic_list %}
-                <tr>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.keywords }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
+		{% for object in object_list %}
+			<div class="category_record">
+				<div class="category_name">
+					{{ object.name|title }}
+				</div>
+				<div class="category_actions">
+                    <button>
+                        <a href="{% url 'main:topic_sites' object.pk %}">сайты топика</a>
+                    </button>
+                    <button>
+                        <a href="{% url 'main:topic_update' object.pk %}">редактировать</a>
+                    </button>
+                    <button>
+                        <a href="{% url 'main:topic_delete' object.pk %}">удалить</a>
+                    </button>
+				</div>
+				<div class="category_desc">
+					{{ object.keywords|title }}
+				</div>
+			</div>
+		{% endfor%}
+	</div>
 {% endblock %}

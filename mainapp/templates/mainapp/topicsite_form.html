@@ -1,6 +1,6 @@
 {% extends 'mainapp/base.html' %}
 {% load static %}
-{% load cache %}
+
 
 {% block container %}
  	 <div class="container">
@@ -8,16 +8,14 @@
 			{% include 'mainapp/inc/inc__main_menu.html' %}
 		</header>
 	</div>
-    <div class="login container">
+    <div class="new_category_form">
         <form class="form-horizontal" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.as_p }}
             <input class="form-control" type="submit" value="сохранить">
         </form>
-
-        <a href="{% url 'main:topics' %}" class="btn btn-round form-control last">
-            к списку топиков
+        <a href="{% url 'main:topic_sites' topic.pk %}" class="btn btn-round form-control last">
+            к списку сайтов топика
         </a>
     </div>
-
 {% endblock %}

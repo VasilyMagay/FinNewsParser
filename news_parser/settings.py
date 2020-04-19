@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import socket
-from .my_settings import *
+from .my_settings import (
+    SECRET_KEY, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_PORT, EMAIL_USE_TLS
+)
 
 # import my_settings
 
@@ -23,10 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if socket.gethostname() == 'magv-hp':
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = bool(socket.gethostname() == 'magv-hp')
 
 ALLOWED_HOSTS = []
 
@@ -133,6 +132,6 @@ STATICFILES_DIRS = (
 
 if not DEBUG:
     try:
-        from .production_settings import *
+        from .production_settings import (ALLOWED_HOSTS, DOMAIN_NAME, STATIC_ROOT)
     except ImportError:
         pass

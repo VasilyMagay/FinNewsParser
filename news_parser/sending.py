@@ -1,4 +1,8 @@
-# https://selenium-python.com/smtplib-email-example
+"""
+news_parser/sending.py
+
+https://selenium-python.com/smtplib-email-example
+"""
 
 import datetime
 import smtplib
@@ -6,18 +10,15 @@ import ssl
 import logging.config
 import socket
 
-from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
-from news_parser.my_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_HOST
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from argparse import ArgumentParser
 from os import path
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+from news_parser.my_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_HOST
 
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
-if socket.gethostname() == 'magv-hp':
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = bool(socket.gethostname() == 'magv-hp')
 
 logging.config.fileConfig(path.join(BASE_DIR, 'news_parser', 'logging.conf'))
 logger = logging.getLogger('sending')
@@ -90,6 +91,11 @@ MESSAGE_STYLE = """
 
 
 def sending(date_date):
+    """
+    Рассылка подписок по электронной почте
+    :param date_date:
+    :return:
+    """
     logger.info('Connecting to the database...')
     con = NewsProvider.connect_db()
     cur = con.cursor()
@@ -142,10 +148,16 @@ def sending(date_date):
 
     con.close()
     logger.info('Connection closed')
-    return
 
 
 def create_page(topic, news, date_date):
+    """
+    Создание html-тескта письма
+    :param topic:
+    :param news:
+    :param date_date:
+    :return:
+    """
     main_text = f"FinNews: {topic['name']}, {date_date}"
     main_text = "<h2>" + main_text + "</h2>"
 
@@ -164,6 +176,13 @@ def create_page(topic, news, date_date):
 
 
 def send_message(topic, news, date_date):
+    """
+    Непосредственная отправка сообщения
+    :param topic:
+    :param news:
+    :param date_date:
+    :return:
+    """
     logger.info(f"Topic \'{topic['name']}\', Date: {date_date}, To: {topic['email']}")
     sender_email = EMAIL_HOST_USER
     receiver_email = topic['email']
@@ -203,8 +222,7 @@ def send_message(topic, news, date_date):
         result = True
         logger.info('Message is send successfully')
     except Exception as err:
-        logger.exception()
-        pass
+        logger.exception(f'{err}')
     return result
 
 

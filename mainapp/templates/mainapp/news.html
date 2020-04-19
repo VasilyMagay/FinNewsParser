@@ -14,9 +14,11 @@
                     </section>
                 </main>
             </div>
-            <div class="category-products clearfix">
+            <div class="category-products clearfix container">
+                <h3>Сайт "{{ site_name }}" (последние 20 новостей)</h3>
                 {% for line in news %}
                 <p><span>{{ line.news_date|date:"d.m.Y H:i" }}</span>  <a href="{{ line.ref }}">{{ line.brief_info }}</a></p>
                 {% endfor %}
+                <p>...</p>
             </div>
 {% endblock %}

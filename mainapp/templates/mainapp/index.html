@@ -14,9 +14,10 @@
                     </section>
                 </main>
             </div>
-            <div class="category-products clearfix">
+            <div class="category-products clearfix container">
+                <h3>Доступные финансовые сайты</h3>
                 {% for site in sites %}
-                    <button type="button" class="btn btn-primary"><a href="{% url 'main:site' site.pk %}">{{ site.name }}</a></button>
+                    <button type="button" class="btn"><a href="{% url 'main:site' site.pk %}">{{ site.name }}</a></button>
                 {% endfor %}
             </div>
 {% endblock %}

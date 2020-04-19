@@ -1,32 +1,35 @@
-import datetime
-import pymorphy2
+"""
+news_parser/filtering.py
+"""
 import re
+import datetime
 import logging.config
 import socket
-from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
-from nltk.tokenize import RegexpTokenizer
-from nltk.corpus import stopwords
 from string import punctuation
 from argparse import ArgumentParser
 from os import path
 
+import pymorphy2
+from nltk.tokenize import RegexpTokenizer
+from nltk.corpus import stopwords
+
+from news_parser.parser import NewsProvider, beg_date_str, end_date_str, exec_sql
+
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
-if socket.gethostname() == 'magv-hp':
-    DEBUG = True
-else:
-    DEBUG = False
+DEBUG = bool(socket.gethostname() == 'magv-hp')
 
 logging.config.fileConfig(path.join(BASE_DIR, 'news_parser', 'logging.conf'))
 logger = logging.getLogger('filtering')
 
-my_stopwords = stopwords.words('russian') + [a for a in punctuation]
+MY_STOPWORDS = stopwords.words('russian') + [mark for mark in punctuation]
 
-# Экземпляры класса MorphAnalyzer обычно занимают порядка 15Мб оперативной памяти (т.к. загружают в память словари,
-# данные для предсказателя и т.д.). Старайтесь создавать экземпляр MorphAnalyzer заранее и работать с этим
-# единственным экземпляром в дальнейшем.
+# Экземпляры класса MorphAnalyzer обычно занимают порядка 15Мб оперативной памяти (т.к. загружают
+# в память словари, данные для предсказателя и т.д.). Старайтесь создавать экземпляр MorphAnalyzer
+# заранее и работать с этим единственным экземпляром в дальнейшем.
 morph = pymorphy2.MorphAnalyzer()
 
-pattern_rus = re.compile("[а-яёА-ЯЁ]+$")  # предполагаем, что русское слово - только из русских букв
+# предполагаем, что русское слово - только из русских букв
+PATTERN_RUS = re.compile("[а-яёА-ЯЁ]+$")
 
 
 def normal_noun(word):
@@ -36,7 +39,7 @@ def normal_noun(word):
     :return:
     """
     result = ''
-    if pattern_rus.fullmatch(word):
+    if PATTERN_RUS.fullmatch(word):
         word_parse = morph.parse(word)
         for item in word_parse:
             if 'NOUN' in item.tag:
@@ -48,6 +51,11 @@ def normal_noun(word):
 
 
 def convert_news(news):
+    """
+    Уменьшение токенов по определенным правилам.
+    :param news:
+    :return: обновленный список токенов
+    """
     # Всё в нижний регистр
     text = news.lower()
     # Создаем объект класса с регулярным выражением
@@ -57,7 +65,8 @@ def convert_news(news):
     # Оставляем только определеннные существительные
     tokens_no_sw = []
     for token in tokens:
-        if token.isalpha() and len(token) > 2 and token not in my_stopwords:  # Убираем стоп-слова и цифры
+        # Убираем стоп-слова и цифры
+        if token.isalpha() and len(token) > 2 and token not in MY_STOPWORDS:
             normal = normal_noun(token)
             if normal and normal not in tokens_no_sw:  # без повторов
                 tokens_no_sw.append(normal)
@@ -65,6 +74,12 @@ def convert_news(news):
 
 
 def raw_conversion(site_id, date_date):
+    """
+    Получение новых токенов для всех новостей
+    :param site_id:
+    :param date_date:
+    :return:
+    """
     logger.info('Connecting to the database...')
     con = NewsProvider.connect_db()
     cur = con.cursor()
@@ -96,10 +111,14 @@ def raw_conversion(site_id, date_date):
 
     con.close()
     logger.info('Connection closed')
-    return
 
 
 def filtering(date_date):
+    """
+    Получение новых токенов для всех сайтов
+    :param date_date:
+    :return:
+    """
     logger.info('Connecting to the database...')
     con = NewsProvider.connect_db()
     cur = con.cursor()

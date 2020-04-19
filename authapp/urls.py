@@ -1,3 +1,6 @@
+"""
+authapp/urls.py
+"""
 from django.urls import re_path
 import authapp.views as authapp
 
