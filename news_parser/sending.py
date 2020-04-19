@@ -145,29 +145,33 @@ def sending(date_date):
                     # cur.execute(sql)
                     exec_sql(logger, cur, sql)
                     con.commit()
+        else:
+            send_message(topic, news, date_date, True)
 
     con.close()
     logger.info('Connection closed')
 
 
-def create_page(topic, news, date_date):
+def create_page(topic, news, date_date, empty=False):
     """
     Создание html-тескта письма
     :param topic:
     :param news:
     :param date_date:
+    :param empty:
     :return:
     """
     main_text = f"FinNews: {topic['name']}, {date_date}"
     main_text = "<h2>" + main_text + "</h2>"
 
-    table = TABLE_START
-    for news_item in news:
-        table_row = TABLE_ROW.replace('<%str_date%>', str(news_item['news_date'])). \
-            replace('<%str_ref%>', news_item['ref']). \
-            replace('<%str_info%>', news_item['brief_info'])
-        table += table_row
-    table += TABLE_END
+    if not empty:
+        table = TABLE_START
+        for news_item in news:
+            table_row = TABLE_ROW.replace('<%str_date%>', str(news_item['news_date'])). \
+                replace('<%str_ref%>', news_item['ref']). \
+                replace('<%str_info%>', news_item['brief_info'])
+            table += table_row
+        table += TABLE_END
 
     page = MESSAGE_TEMPLATE.replace('<%style%>', MESSAGE_STYLE). \
         replace('<%main_text%>', main_text). \
@@ -175,12 +179,13 @@ def create_page(topic, news, date_date):
     return page
 
 
-def send_message(topic, news, date_date):
+def send_message(topic, news, date_date, empty=False):
     """
     Непосредственная отправка сообщения
     :param topic:
     :param news:
     :param date_date:
+    :param empty:
     :return:
     """
     logger.info(f"Topic \'{topic['name']}\', Date: {date_date}, To: {topic['email']}")
@@ -199,7 +204,7 @@ def send_message(topic, news, date_date):
     text = message["Subject"]
 
     # HTML версия сообщения
-    html = create_page(topic, news, date_date)
+    html = create_page(topic, news, date_date, empty)
 
     # Сделать их текстовыми\html объектами MIMEText
     part1 = MIMEText(text, "plain")

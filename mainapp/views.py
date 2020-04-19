@@ -65,10 +65,6 @@ class TopicsListView(ListView):
 
     def get_queryset(self):
         return self.request.user.topic_set.all()
-    # def get_queryset(self):
-    #     return NonDisclosure.objects.filter(user=self.request.user)
-    # def dispatch(self, *args, **kwargs):
-    #     return super().dispatch(*args, **kwargs)
 
 
 @method_decorator(user_passes_test(lambda u: u.is_staff), name='dispatch')
@@ -80,12 +76,17 @@ class TopicCreateView(CreateView):
     form_class = TopicEditForm
     # template_name = 'mainapp/topic_update.html'
     success_url = reverse_lazy('main:topics')
+
     # fields = '__all__'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'FNP: Новый топик'
         return context
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
 @method_decorator(user_passes_test(lambda u: u.is_staff), name='dispatch')
