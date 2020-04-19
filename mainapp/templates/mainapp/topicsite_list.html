@@ -1,0 +1,29 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+
+{% block container %}
+ 	 <div class="container">
+		<header class="padding-site">
+			{% include 'mainapp/inc/inc__main_menu.html' %}
+		</header>
+	</div>
+    <div class="new_products_list container">
+		<h3>Список сайтов топика <b>{{ topic.name }}</b></h3>
+		<button class="new_product">
+			<a href="{% url 'main:topicsite_create' topic.pk %}">новый</a>
+		</button>
+		
+		{% for object in object_list %}
+			<div class="product_record">
+				<div class="product_name">
+					{{ object|title }}
+				</div>
+				<div class="product_actions">
+					<button>
+						<a href="{% url 'main:topicsite_delete' object.pk %}">удалить</a>
+					</button>
+				</div>
+			</div>
+		{% endfor%}
+	</div>
+{% endblock %}

@@ -1242,7 +1242,7 @@ html, body{
 }
 
 .categories_list {
-    margin-left: 150px;
+    margin-left: 350px;
 }
 
 .categories_list .new_category {
@@ -1275,7 +1275,7 @@ html, body{
 .categories_list .category_name {
     display: block;
     float: left;
-    margin-top: 15px;
+    margin-top: 0px;
     margin-left: 25px;
     width: 150px;
     font-size: 150%;
@@ -1298,7 +1298,7 @@ html, body{
 }
 
 .new_products_list {
-    margin-left: 250px;
+    margin-left: 350px;
 }
 
 .new_products_list .new_product {
@@ -1332,7 +1332,7 @@ html, body{
 .product_record .product_name {
     display: block;
     float: left;
-    margin-top: 25px;
+    margin-top: 0px;
     margin-left: 25px;
     width: 250px;
     font-size: 150%;

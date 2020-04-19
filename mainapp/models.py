@@ -23,6 +23,9 @@ class Site(models.Model):
         verbose_name='Description',
         null=True)
 
+    def __str__(self):
+        return f'{self.name}'
+
 
 class Topic(models.Model):
     """
@@ -42,6 +45,9 @@ class Topic(models.Model):
         blank=True, null=True, verbose_name='Active Period Start')
     period_end = models.DateTimeField(
         blank=True, null=True, verbose_name='Active Period End')
+
+    def __str__(self):
+        return f'{self.name}'
 
 
 class News(models.Model):
@@ -84,6 +90,9 @@ class TopicSite(models.Model):
         Site,
         verbose_name='Site',
         on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.site.name}'
 
 
 class TopicNews(models.Model):

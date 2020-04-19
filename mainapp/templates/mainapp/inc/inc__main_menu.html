@@ -7,16 +7,18 @@
         <ul class="menu">
             <li class="menu-list">
                 <a href="{% url 'main:index' %}"
-                   class="menu-link {% if request.resolver_match.url_name == 'topic_list' %} menu-link-active{% endif %}">
+                   class="menu-link {% if request.resolver_match.url_name == 'index' %} menu-link-active{% endif %}">
                     Home
                 </a>
             </li>
+            {% if user.is_authenticated %}
             <li class="menu-list">
-                <a href="{% url 'main:topic_list' %}"
-                   class="menu-link {% if request.resolver_match.url_name == 'index' %} menu-link-active{% endif %}">
+                <a href="{% url 'main:topics' %}"
+                   class="menu-link {% if request.resolver_match.url_name == 'topics' %} menu-link-active{% endif %}">
                     Topic
                 </a>
             </li>
+            {% endif %}
             {% if user.is_authenticated %}
             <li class="menu-list">
                 <div class="dropdown menu-link">

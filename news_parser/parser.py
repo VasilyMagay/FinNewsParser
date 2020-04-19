@@ -395,12 +395,21 @@ class FireFoxBrowser(Browser):
             "general.useragent.override",
             "Opera/9.80 (Android 2.2; Opera Mobi/-2118645896; U; pl) Presto/2.7.60 Version/10.5")
 
+        profile.set_preference('browser.helperApps.alwaysAsk.force', False)  # 19042020
+        profile.set_preference('browser.download.manager.showWhenStarting', False)  # 19042020
+        # browser.download.folderList
+        #   0 - Firefox will save all files downloaded via the browser on the user's desktop;
+        #   1 - these downloads are stored in the Downloads folder;
+        #   2 - custom location ('browser.download.dir')
+        profile.set_preference('browser.download.folderList', 1)  # 19042020
+
         try:
             self.browser = webdriver.Firefox(
                 executable_path=FIREFOX_EXECUTABLE_PATH,
                 options=options,
                 firefox_profile=profile
             )
+            self.browser.implicitly_wait(20)  # seconds
 
         except WebDriverException as err:
             self.connect_error = err
@@ -408,8 +417,6 @@ class FireFoxBrowser(Browser):
         except Exception as err:
             self.connect_error = err
             return
-
-        # browser.implicitly_wait(10)  # seconds
 
     def disconnect(self):
         if self.browser:

@@ -1,0 +1,19 @@
+{% extends 'mainapp/base.html' %}
+{% load static %}
+
+
+{% block container %}
+ 	 <div class="container">
+		<header class="padding-site">
+			{% include 'mainapp/inc/inc__main_menu.html' %}
+		</header>
+	</div>
+    <div class="user_delete">
+        Уверены, что хотите удалить <b>{{ object.site }}</b> из топика <b>{{ object.topic.name }}</b>?
+        <form method="post">
+            {% csrf_token %}
+            <input class="btn btn-danger" type="submit" value="удалить">
+        </form>
+        <a href="{% url 'main:topic_sites' object.topic.pk %}" class="btn btn-success">отмена</a>
+    </div>
+{% endblock %}
