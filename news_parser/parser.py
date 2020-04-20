@@ -183,7 +183,10 @@ class FinamNewsProvider(NewsProvider):
                     lines_cnt += 1
                     for link in obj.find_all(
                             lambda tag: tag.name == 'a' and tag.get('class') != ['section']):
-                        date_s = obj.find("span", class_="date").text
+                        try:
+                            date_s = obj.find("span", class_="date").text
+                        except Exception:
+                            date_s = None
                         if not date_s:
                             date_s = '00:00'
                         link_text = ''
@@ -247,16 +250,17 @@ class FinamNewsProvider(NewsProvider):
                 try:
                     raw_text_info = FinamNewsProvider.prepare_news_text(
                         one_news['raw_info'])
+                    brief_info = FinamNewsProvider.prepare_news_text(one_news['brief_info'])
                     sql = f"INSERT INTO {self.NEWS_DBNAME} " \
                           f"(site_id, news_date, ref, brief_info, raw_info, info, " \
                           f"raw_converted) VALUES ({self.site_id}, '{one_news['news_date']}', " \
-                          f"'{one_news['ref']}', '{one_news['brief_info']}', '{raw_text_info}', " \
+                          f"'{one_news['ref']}', '{brief_info}', '{raw_text_info}', " \
                           f"'', False);"
                     # print(sql)
                     cur.execute(sql)
                     con.commit()
                 except Exception as err:
-                    logger.exception()
+                    logger.exception(f'{err}')
                     logger.info(f'ERROR: {sql}, INFO=\'{raw_text_info}\'')
 
             con.close()
@@ -320,6 +324,8 @@ class FinamNewsProvider(NewsProvider):
         my_str = info.replace('%', '%%')
         my_str = my_str.replace('\'', ' ')
         my_str = my_str.replace('\"', ' ')
+        my_str = my_str.replace('\n', ' ')
+        my_str = my_str.replace('\t', ' ')
         return my_str
 
 
@@ -556,8 +562,8 @@ def exec_sql(my_logger, cur, sql, *args, **kwargs):
     try:
         cur.execute(sql, *args, **kwargs)
     except Exception as err:
-        my_logger.exception()
-        my_logger.error(f'SQL: {sql}\nError: {err}')
+        # my_logger.exception()
+        my_logger.exception(f'SQL: {sql}\nError: {err}')
 
 
 if __name__ == '__main__':
