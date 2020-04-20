@@ -170,43 +170,49 @@ class FinamNewsProvider(NewsProvider):
 
             html_doc = read_page['html']
             logger.info(f'Parsing titles...')
-            bs_obj = BeautifulSoup(html_doc, features="html.parser")
+            try:
+                bs_obj = BeautifulSoup(html_doc, features="html.parser")
+            except Exception as err:
+                msg = f'{url}\n{str(err)}'
+                logger.exception(msg)
+                bs_obj = None
 
             lines_cnt = 0
-            for obj in bs_obj.findAll("div", class_="ln"):
-                lines_cnt += 1
-                for link in obj.find_all(
-                        lambda tag: tag.name == 'a' and tag.get('class') != ['section']):
-                    date_s = obj.find("span", class_="date").text
-                    if not date_s:
-                        date_s = '00:00'
-                    link_text = ''
-                    try:
-                        link_text = link.attrs['href']
-                    except Exception as err:
-                        logger.exception(f'{err}')
-                    finally:
-                        pass
-                    if link_text:
-                        brief_info = str(obj.p.text).strip()
-                        if brief_info:
-                            if not link_text.startswith('/webinars') and \
-                                    not link_text.startswith('/infinity') and \
-                                    link_text not in check_ref:
-                                if link_text.startswith('http'):
-                                    news_ref = link_text
-                                else:
-                                    news_ref = f'https://www.finam.ru{link_text}'
-                                news.append(
-                                    {
-                                        'news_date': datetime.datetime.strptime(
-                                            date_str + ' ' + date_s,
-                                            '%d.%m.%Y %H:%M'),
-                                        'ref': news_ref,
-                                        'brief_info': brief_info,
-                                        'raw_info': '',
-                                    })
-                                check_ref.append(link_text)
+            if bs_obj:
+                for obj in bs_obj.findAll("div", class_="ln"):
+                    lines_cnt += 1
+                    for link in obj.find_all(
+                            lambda tag: tag.name == 'a' and tag.get('class') != ['section']):
+                        date_s = obj.find("span", class_="date").text
+                        if not date_s:
+                            date_s = '00:00'
+                        link_text = ''
+                        try:
+                            link_text = link.attrs['href']
+                        except Exception as err:
+                            logger.exception(f'{err}')
+                        finally:
+                            pass
+                        if link_text:
+                            brief_info = str(obj.p.text).strip()
+                            if brief_info:
+                                if not link_text.startswith('/webinars') and \
+                                        not link_text.startswith('/infinity') and \
+                                        link_text not in check_ref:
+                                    if link_text.startswith('http'):
+                                        news_ref = link_text
+                                    else:
+                                        news_ref = f'https://www.finam.ru{link_text}'
+                                    news.append(
+                                        {
+                                            'news_date': datetime.datetime.strptime(
+                                                date_str + ' ' + date_s,
+                                                '%d.%m.%Y %H:%M'),
+                                            'ref': news_ref,
+                                            'brief_info': brief_info,
+                                            'raw_info': '',
+                                        })
+                                    check_ref.append(link_text)
 
             if lines_cnt == 0:
                 break
@@ -300,8 +306,8 @@ class FinamNewsProvider(NewsProvider):
                             current_p = link.text
                             result += current_p
         except Exception as err:
-            result = f'{url}\n{str(err)}'
-            logger.exception()
+            msg = f'{url}\n{str(err)}'
+            logger.exception(msg)
         return result
 
     @staticmethod
