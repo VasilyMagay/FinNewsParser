@@ -40,7 +40,7 @@ class NewsProvider(metaclass=abc.ABCMeta):
     SITE_DBNAME = 'mainapp_site'
     NEWS_DBNAME = 'mainapp_news'
     TOPIC_DBNAME = 'mainapp_topic'
-    USERS_DBNAME = 'finnews.authapp_siteuser'
+    USERS_DBNAME = 'authapp_siteuser'
     TOPIC_NEWS_DBNAME = 'mainapp_topicnews'
     TOPIC_SITE_DBNAME = 'mainapp_topicsite'
 
