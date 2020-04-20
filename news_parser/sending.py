@@ -97,7 +97,7 @@ def sending(date_date):
     :return:
     """
     logger.info('Connecting to the database...')
-    con = NewsProvider.connect_db()
+    con = NewsProvider.connect_db(logger)
     cur = con.cursor()
 
     sql = f"SELECT DISTINCT topic.name, topic_id, users.username, users.email " \

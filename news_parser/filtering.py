@@ -81,7 +81,7 @@ def raw_conversion(site_id, date_date):
     :return:
     """
     logger.info('Connecting to the database...')
-    con = NewsProvider.connect_db()
+    con = NewsProvider.connect_db(logger)
     cur = con.cursor()
 
     sql = f"SELECT id, raw_info FROM {NewsProvider.NEWS_DBNAME} WHERE site_id={site_id} AND " \
@@ -120,7 +120,7 @@ def filtering(date_date):
     :return:
     """
     logger.info('Connecting to the database...')
-    con = NewsProvider.connect_db()
+    con = NewsProvider.connect_db(logger)
     cur = con.cursor()
 
     sql = f"SELECT id FROM {NewsProvider.SITE_DBNAME};"
