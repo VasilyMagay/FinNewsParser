@@ -63,7 +63,7 @@ class NewsProvider(metaclass=abc.ABCMeta):
         if self.site_ref:
             return
 
-        con = NewsProvider.connect_db()
+        con = NewsProvider.connect_db(logger)
         cur = con.cursor()
         # cur.execute(f"SELECT * FROM {self.SITE_DBNAME} WHERE name=%s", self.site_name)
         exec_sql(
@@ -80,26 +80,31 @@ class NewsProvider(metaclass=abc.ABCMeta):
         con.close()
 
     @staticmethod
-    def connect_db():
+    def connect_db(connect_logger):
         """
         Соединение с базой данных
         :return: connect()
         """
-        mysql_config = {}
-        with open(path.join(BASE_DIR, 'mysql.cnf'), 'r') as file:
-            lines = file.read().splitlines()
-            for line in lines:
-                pair = line.split('=')
-                if len(pair) == 2:
-                    mysql_config[pair[0].strip()] = pair[1].strip()
-        return pymysql.connect(
-            mysql_config['host'],
-            mysql_config['user'],
-            mysql_config['password'],
-            mysql_config['database'],
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
+        try:
+            mysql_config = {}
+            with open(path.join(BASE_DIR, 'mysql.cnf'), 'r') as file:
+                lines = file.read().splitlines()
+                for line in lines:
+                    pair = line.split('=')
+                    if len(pair) == 2:
+                        mysql_config[pair[0].strip()] = pair[1].strip()
+            return pymysql.connect(
+                mysql_config['host'],
+                mysql_config['user'],
+                mysql_config['password'],
+                mysql_config['database'],
+                charset='utf8mb4',
+                cursorclass=pymysql.cursors.DictCursor
+            )
+            logger.info('The connection is established')
+        except Exception as err:
+            connect_logger.exception(f'Error DB connecting ({err})')
+        return None
 
 
 class FinamNewsProvider(NewsProvider):
@@ -221,7 +226,7 @@ class FinamNewsProvider(NewsProvider):
         if self.site_id is not None:
             # print(news)
             logger.info('Connecting to the database...')
-            con = NewsProvider.connect_db()
+            con = NewsProvider.connect_db(logger)
             cur = con.cursor()
 
             sql = f"DELETE FROM {self.NEWS_DBNAME} WHERE id > 0 AND site_id={self.site_id} AND " \
