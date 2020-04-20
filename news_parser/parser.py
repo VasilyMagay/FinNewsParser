@@ -93,7 +93,7 @@ class NewsProvider(metaclass=abc.ABCMeta):
                     pair = line.split('=')
                     if len(pair) == 2:
                         mysql_config[pair[0].strip()] = pair[1].strip()
-            return pymysql.connect(
+            connect = pymysql.connect(
                 mysql_config['host'],
                 mysql_config['user'],
                 mysql_config['password'],
@@ -102,6 +102,7 @@ class NewsProvider(metaclass=abc.ABCMeta):
                 cursorclass=pymysql.cursors.DictCursor
             )
             logger.info('The connection is established')
+            return connect
         except Exception as err:
             connect_logger.exception(f'Error DB connecting ({err})')
         return None
